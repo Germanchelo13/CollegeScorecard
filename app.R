@@ -91,7 +91,7 @@ usuario<- fluidPage(
                      
               )),
       tabItem(tabName = 'viz',
-              tabBox(width= 12,tabPanel('Numeric',icon=icon('char-scatter'),
+              tabBox(width= 12,tabPanel('Numeric',icon=icon('chart-scatter'),
                               fluidPage( 
                                 fluidRow( br(), 
                                           selectInput(inputId ="var_numeric" , label = "Select variable"
@@ -109,7 +109,7 @@ usuario<- fluidPage(
                                 ) 
                                 )
                               ),
-                     tabPanel('Qualitative',icon=icon('char-column'),
+                     tabPanel('Qualitative',icon=icon('chart-column'),
                               fluidPage(
                                 fluidRow( selectInput(inputId ="var_cat" , 
                                                       label = "Select variable"
@@ -122,7 +122,7 @@ usuario<- fluidPage(
                      )),
       # item descripcion 
       tabItem(tabName = 'intro',
-              tabBox(tabPanel(title='Mermbers',
+              tabBox(tabPanel(title='Context',
                                                 fluidPage(
                                                   fluidRow(uiOutput('intro_'))
                                                 )))) ,
@@ -199,6 +199,7 @@ servidor<-function(input, output) {
                        contar<-contar+3
                        indice<-indice-1
                      }
+                     print(text_)
                      tagList(text_)
                    })
                })
