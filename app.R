@@ -12,25 +12,18 @@ mapa_usa<-st_read('map_states/geoBoundaries-USA-ADM1_simplified.shp')
 mapa_usa<-mapa_usa %>%
   st_set_crs(value = 4326) %>%
   st_transform(crs = 3857)
-datos<- read.csv('CollegeScorecard_result_cod.csv')
+datos<- read.csv('CollegeScorecard_result.csv')
 datos<-datos[,names(datos)[2:length(names(datos))]]
-datos$NPCURL<-paste('https://',datos$NPCURL,sep='' ) # add https 
-datos$INSTURL<-paste('https://',datos$INSTURL,sep='' )
 datos$address<-paste(datos$INSTNM,  # direccion 
                datos$CITY,
                datos$STABBR,
                datos$ZIP, sep=", ")
-diccionario<-list("PCTPELL"=c('percentage of students who received 
-PELL scholarships in a given year.'),
-                  "PCTFLOAN"=c('percentage of students 
-                  who received federal aid in a given year.'),
-                  'NUMBRANCH'=c('Number of campus for university.'),
-                  'TUITFTE'=c('average cost of tuition per student.'),
+diccionario<-list('TUITFTE'=c('average cost of tuition per student.'),
                   'INEXPFTE'=c('Instructional expenses divided by the number of
-                               full-time students.') )
-var_numeric<-c("PCTFLOAN","PCTPELL",'NUMBRANCH','TUITFTE','INEXPFTE' )
-var_cat<-c("CONTROL","HBCU","PBI","ANNHI",
-           "TRIBAL","AANAPII","HSI","NANTI","HIGHDEG","PREDDEG","DISTANCEONLY","HCM2")
+                               full-time students.',
+                               'NUM_PROGRAM'=c('Number of program ')) )
+var_numeric<-c("TUITFTE","INEXPFTE",'NUM_PROGRAM' )
+var_cat<-c("CONTROL","HIGHDEG","PREDDEG","DISTANCEONLY","HCM2")
 
 
 datos$CLUSTER<-factor(datos$CLUSTER)
@@ -45,11 +38,14 @@ datos_geo <- datos %>%
 mapa_puntos<- datos_geo %>%
   st_intersection(mapa_usa)
 prueba<-mapa_puntos %>% group_by(shapeName ) %>% summarise( conteo=length(unique(STABBR)) )
+cluster_total<-datos%>% 
+  group_by(CLUSTER)%>%
+  summarise(total=n())
 usuario<- fluidPage(
   dashboardPage(
     # header princial
     dashboardHeader(title="University EEUU.",
-                    titleWidth = 800, 
+                    titleWidth = 400, 
                     tags$li(class="dropdown",
                             tags$a(href=url_github, 
                                    icon("github"), 
@@ -76,7 +72,7 @@ usuario<- fluidPage(
                               fluidPage(
                                 fluidRow(column(6,
                                                 selectInput(inputId ="cluster" ,label= "Seleccione el cluster",
-                                                            choices =unique(datos$CLUSTER),multiple = TRUE, selected=1)),
+                                                            choices =unique(datos$CLUSTER),multiple = TRUE)),
                                          column(6, selectInput(inputId ="estado" ,label= "Seleccione el estado",
                                                                                        choices =unique(datos$STABBR),multiple = TRUE) ) ),
                                 fluidRow(uiOutput("info_points") ,br(),br(), 
@@ -97,17 +93,24 @@ usuario<- fluidPage(
                                           selectInput(inputId ="var_numeric" , label = "Select variable"
                                                       , choices = var_numeric ),
                                           uiOutput('descripcion_numerica'),
-                                          plotlyOutput('boxplot_comp'), br(),br(),
-                                          fluidRow(column(6,
-                                                          selectInput(inputId ="var_numeric_1" , label = "Select var"
-                                                                       , choices = var_numeric )),
-                                                   column(6,
-                                                          selectInput(inputId ="var_numeric_2" , label = "Select var"
-                                                                       , choices = var_numeric )) ),
-                                          uiOutput('descripcion_numerica_2'),
-                                          plotlyOutput('scatter_comp')
+                                          plotlyOutput('boxplot_comp'), br(),br()
+
                                 ) 
                                 )
+                              ),
+                     tabPanel('Scatter',
+                              fluidPage(
+                                fluidRow(
+                                  fluidRow(column(6,
+                                                  selectInput(inputId ="var_numeric_1" , label = "Select var"
+                                                              , choices = var_numeric )),
+                                           column(6,
+                                                  selectInput(inputId ="var_numeric_2" , label = "Select var"
+                                                              , choices = var_numeric )) ),
+                                  uiOutput('descripcion_numerica_2'),
+                                  plotlyOutput('scatter_comp')
+                                )
+                              )
                               ),
                      tabPanel('Qualitative',icon=icon('chart-column'),
                               fluidPage(
@@ -121,11 +124,18 @@ usuario<- fluidPage(
                      
                      )),
       # item descripcion 
-      tabItem(tabName = 'intro',
-              tabBox(tabPanel(title='Context',
+      tabItem(tabName = 'intro',fluidRow(style='height:5vh'),
+              tabBox(tabPanel(title='Contexto',width=12,
                                                 fluidPage(
-                                                  fluidRow(uiOutput('intro_'))
-                                                )))) ,
+                                                  fluidRow(uiOutput('intro_'),
+                                                           plotlyOutput('torta_'))
+                                                )),
+                    tabPanel('Caracterización', fluidPage(fluidRow( 
+                      uiOutput('caracterizacion'),
+                      plotlyOutput('torta'))) ),
+                    tabPanel('Video ',icon=icon('youtube'),fluidPage(
+                      fluidRow(uiOutput('video_') )
+                    )  ) )) ,
       tabItem(tabName="data",
               tabBox(id="t3",width= 12,
                      tabPanel(title="Data frame Universities",icon=icon('table'),
@@ -144,7 +154,22 @@ usuario<- fluidPage(
   )
 )
 servidor<-function(input, output) {
+output$intro_<-renderUI({
+  HTML("
+  <h2>Analisis: Instituciones de educacion de Estados Unidos</h2>
+  <p>Realizado por:<br>-David Andres Cano Gonzalez<br>-David Garcia Blandon<br>-German Alonso Patino Hurtado<br>-Juan Pablo Buitrago Diaz<br</p>
 
+
+  <p>Mediante el presente, se prete realizar un analisis estadistico para el conjunto de instituciones educativas del departamento de educacion de Estados Unidos. Este se realiza con el fin de ayudar a padres, estudiantes y politicos con la toma de decisiones. Para esto, se propuso y realizo una agrupacion de las diferentes instituciones educativas, basandonos en diferentes aspectos y atributos de las mismas, y mediante la tecnica de clustering.</p>
+<p>El objetivo del agrupamiento, fue el de identificar grupos de instituciones educativas de caracteristicas similares. Los datos fueron sacados de la base de datos  <a href= 'https://data.world/exercises/cluster-analysis-exercise-2' target='_blank'> CollegeScorecard </a> . 
+Antes de realizar la tecnica de clustering, se necesito realizar una preparacion de los datos, ya que muchos tenian valores vacios o erroneos. De las 7804 universidades que se encontraron en la base de datos se trabajo solo con 7279. Luego se realizaron pruebas para verificar la pertinencia y eficacia del metodo. Luego se realizo el clustering, y por ultimo se analizaron los resultados.</p>
+       ")
+}  )
+output$video_<- renderUI(
+  HTML("<iframe width='420' height='315'
+src='https://www.youtube.com/embed/tgbNymZ7vqY'>
+</iframe>")
+)
   output$info<-renderUI(  {
     tags$div(
       tags$b('Authors:'),tags$br(),
@@ -156,7 +181,7 @@ servidor<-function(input, output) {
       tags$br(),
       HTML('&#9658 David Garcia Blandon Estudiante de ingenieria en sistemas en la Universidad Nacional de Colombia.' ),
       tags$br(),
-      HTML('&#9658 Juan Pablo Buitrago Diaz Estudiante de ingenieria en sistemas en la Universidad Nacional de Colombia.' ),
+      HTML(paste('&#9658',tags$a(href='https://www.linkedin.com/in/juan-pablo-buitrago-diaz-5b960922b/',icon("linkedin"), 'Juan Pablo Buitrago Diaz', target="_blank"), 'Estudiante de ingenieria en sistemas en la Universidad Nacional de Colombia.') ),
     )
   })
   # mapa university 
@@ -174,29 +199,23 @@ servidor<-function(input, output) {
       tm_polygons()})
     observeEvent(input$map_plot_marker_click,{
       click_<-input$map_plot_marker_click
-      filtro<-paste('X',datos$UNITID,sep='')==click_$id
-      uni_click<-datos[filtro,c('address','INSTURL','NPCURL')]
+      filtro<-paste('X',datos$OPEID,sep='')==click_$id
+      uni_click<-datos[filtro,c('address','INSTURL')]
       filtro<-!is.element(values$universidad,uni_click[1]$address)
       values$universidad<-c(values$universidad[filtro], uni_click[1]$address)
       values$url_1<-c(values$url_1[filtro], uni_click[2]$INSTURL)
-      values$url_2<-c(values$url_2[filtro], uni_click[3]$NPCURL)                     
 
       print(values$universidad)
       output$urls<- renderUI({ 
 
                      contar<-3
                      n_<-length(values$universidad)
-                     text_<-list(tags$b('Show last 7 university.'),tags$br())
+                     text_<-list(tags$b('Show last 6 university.'),tags$br())
                      indice<-n_
                      while(indice>0 & n_-indice<7  ){
                        text_[[contar]]<-tags$b( values$universidad[indice])
-                       text_[[contar+1]]<-tags$li(class="dropdown",
-                                                  tags$a(href= values$url_1[indice],
-                                                                        'Main web page ', target="_blank"))
-                       text_[[contar+2]]<-tags$li(class="dropdown",
-                                                  tags$a(href= values$url_2[indice],
-                                                                        'Net cost web page ', target="_blank"))
-                       contar<-contar+3
+                       text_[[contar+1]]<-HTML(values$url_1[indice])
+                       contar<-contar+2
                        indice<-indice-1
                      }
                      print(text_)
@@ -227,9 +246,6 @@ servidor<-function(input, output) {
       
   }) 
   output$bar_comp<-renderPlotly({
-    cluster_total<-datos%>% 
-      group_by(CLUSTER)%>%
-      summarise(total=n())
     datos_gruop<-datos %>% 
       group_by(CLUSTER,get(input$var_cat) ) %>%
       summarise(freq=n())
@@ -246,6 +262,12 @@ servidor<-function(input, output) {
       layout(yaxis = list(title = 'Percentaje'),legend=list(title='Tipo universidad'))
     
   } )
+  output$torta<-renderPlotly({
+    fig <- plot_ly(data=cluster_total, labels = ~CLUSTER, values = ~total, type = 'pie')
+    fig <- fig %>% layout(title = 'United States Personal Expenditures by Categories in 1960',
+                          xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+  })
   output$descripcion_numerica_2<- renderUI({
     HTML(paste('<b>',input$var_numeric_1,'</b> :', diccionario[[input$var_numeric_1]],
          '<br /> ','<b>',input$var_numeric_2,'</b> :', diccionario[[input$var_numeric_2]],sep='' ))
