@@ -8,20 +8,27 @@ library(shinydashboard)
 library(tidyverse)
 library(shinycssloaders)# to add a loader while graph is populating
 url_github<-"https://github.com/Germanchelo13/CollegeScorecard.git"
-mapa_usa<-st_read('map_states/geoBoundaries-USA-ADM1_simplified.shp')
-mapa_usa<-mapa_usa %>%
-  st_set_crs(value = 4326) %>%
-  st_transform(crs = 3857)
+mapa_usa<-st_read('map_states/mapa_CollegeScorecard.shp')
+names(mapa_usa)<-c("shapeName","Shape_Leng"  ,  "Shape_Area"  ,  "Level",    "shapeISO",
+                   "shapeID",  "shapeGroup" ,   "shapeType","Cluster_top" ,  "mean_TUITFTE" ,
+                   "mean_INEXPFTE", "Cluster_1","Cluster_2","Cluster_3","Cluster_4"   , 
+                   "geometry" )
+
 datos<- read.csv('CollegeScorecard_result.csv')
 datos<-datos[,names(datos)[2:length(names(datos))]]
 datos$address<-paste(datos$INSTNM,  # direccion 
                datos$CITY,
                datos$STABBR,
                datos$ZIP, sep=", ")
-diccionario<-list('TUITFTE'=c('average cost of tuition per student.'),
-                  'INEXPFTE'=c('Instructional expenses divided by the number of
-                               full-time students.',
-                               'NUM_PROGRAM'=c('Number of program ')) )
+datos[datos$st_fips=='68','st_fips']<-'Marshall Islands'
+diccionario<-list('TUITFTE'='Costo de matricula promedio.',
+                  'INEXPFTE'='Inversión de la universidad por estudiante.',
+                               'NUM_PROGRAM'='Número total de programas que ofrece la universidad',
+                  'CONTROL'='Tipo de universidad.',
+                  'HIGHDEG'='Nivel academico mas alto que ofrece la universidad.',
+                  'PREDDEG'='Nivel academico que destaca en la universidad.',
+                  'DISTANCEONLY'='Si la universidad solo ofrece modalidad virtual.',
+                  'HCM2'='Si la universidad tiene riesgo financiero.')
 var_numeric<-c("TUITFTE","INEXPFTE",'NUM_PROGRAM' )
 var_cat<-c("CONTROL","HIGHDEG","PREDDEG","DISTANCEONLY","HCM2")
 
@@ -35,9 +42,7 @@ datos_geo <- datos %>%
   st_as_sf(coords = c('LONGITUDE', 'LATITUDE')) %>%
   st_set_crs(value = 4326) %>%
   st_transform(crs = 3857) 
-mapa_puntos<- datos_geo %>%
-  st_intersection(mapa_usa)
-prueba<-mapa_puntos %>% group_by(shapeName ) %>% summarise( conteo=length(unique(STABBR)) )
+
 cluster_total<-datos%>% 
   group_by(CLUSTER)%>%
   summarise(total=n())
@@ -45,7 +50,7 @@ usuario<- fluidPage(
   dashboardPage(
     # header princial
     dashboardHeader(title="University EEUU.",
-                    titleWidth = 400, 
+                   # titleWidth = 400, 
                     tags$li(class="dropdown",
                             tags$a(href=url_github, 
                                    icon("github"), 
@@ -74,7 +79,7 @@ usuario<- fluidPage(
                                                 selectInput(inputId ="cluster" ,label= "Seleccione el cluster",
                                                             choices =unique(datos$CLUSTER),multiple = TRUE)),
                                          column(6, selectInput(inputId ="estado" ,label= "Seleccione el estado",
-                                                                                       choices =unique(datos$STABBR),multiple = TRUE) ) ),
+                                                                                       choices =unique(datos$st_fips),multiple = TRUE) ) ),
                                 fluidRow(uiOutput("info_points") ,br(),br(), 
                                   tmapOutput("map_plot"),
                                   br(),uiOutput("urls")
@@ -87,7 +92,7 @@ usuario<- fluidPage(
                      
               )),
       tabItem(tabName = 'viz',
-              tabBox(width= 12,tabPanel('Numeric',icon=icon('chart-scatter'),
+              tabBox(id='t3',width= 12,tabPanel('Numeric',icon=icon('chart-scatter'),
                               fluidPage( 
                                 fluidRow( br(), 
                                           selectInput(inputId ="var_numeric" , label = "Select variable"
@@ -125,10 +130,9 @@ usuario<- fluidPage(
                      )),
       # item descripcion 
       tabItem(tabName = 'intro',fluidRow(style='height:5vh'),
-              tabBox(tabPanel(title='Contexto',width=12,
+              tabBox(id='t3',width=12,tabPanel(title='Contexto', 
                                                 fluidPage(
-                                                  fluidRow(uiOutput('intro_'),
-                                                           plotlyOutput('torta_'))
+                                                  fluidRow(uiOutput('intro_'))
                                                 )),
                     tabPanel('Caracterización', fluidPage(fluidRow( 
                       uiOutput('caracterizacion'),
@@ -154,12 +158,32 @@ usuario<- fluidPage(
   )
 )
 servidor<-function(input, output) {
+  output$caracterizacion<-renderUI({
+    HTML("
+    <br><h2>¿Cómo son los cluster?  </h6>
+    </br>
+    <br>
+    <b>Cluster 1 :</b>
+En este grupo se encuentran 2635 instituciones educativas con un costo por matrícula cercano a 7.6mil dólares, y con una inversión por estudiante próxima a los 3.9mil dólares. En promedio estas instituciones educativas albergan 2 programas y la mayoría son privadas y con ánimo de lucro. Dentro de estas predominan las licenciaturas, que a su vez suelen ser el mayor nivel académico. 
+</br>
+<br>
+<br> <b>Cluster 2:</b>
+En este grupo se encuentran 1.937 instituciones educativas con un costo de matrícula cercano a 14 mil dólares, y con una inversión próxima a 7.3 miles de dólares. En promedio estas instituciones educativas albergan 15 programas, y la mayoría son privadas sin ánimo de lucro. Dentro de estas predominan las carreras profesionales, y su máximo nivel educativo son los posgrados. 
+</br>
+<br>
+<b>Cluster 3:</b>
+En este grupo se encuentran 2097 instituciones educativas con un costo por matrícula cercano a 5 mil dólares, y con una inversión próxima a 4.6 mil dólares. En promedio estas instituciones educativas albergan 20 programas académicos, y son públicas o privadas con ánimo de lucro. Dentro de estas predominan los grados asociados, que a su vez son el nivel educativo más alto.
+</br>
+<br>
+<b>Cluster 4:</b>
+En este grupo se encuentran 600 instituciones educativas con un costo por matrícula cercano a 6.5 mil dólares, y con una inversión próxima a 8 mil dólares. En promedio estas instituciones educativas albergan 27 programas académicos, y son públicas. Dentro de estas predominan las carreras profesional, y su nivel educativo más alto son los posgrados
+</br>
+<br> </br>
+         ")
+  })
 output$intro_<-renderUI({
   HTML("
-  <h2>Analisis: Instituciones de educacion de Estados Unidos</h2>
-  <p>Realizado por:<br>-David Andres Cano Gonzalez<br>-David Garcia Blandon<br>-German Alonso Patino Hurtado<br>-Juan Pablo Buitrago Diaz<br</p>
-
-
+  <h2>Analisis: Instituciones de educacion superior en Estados Unidos</h2>
   <p>Mediante el presente, se prete realizar un analisis estadistico para el conjunto de instituciones educativas del departamento de educacion de Estados Unidos. Este se realiza con el fin de ayudar a padres, estudiantes y politicos con la toma de decisiones. Para esto, se propuso y realizo una agrupacion de las diferentes instituciones educativas, basandonos en diferentes aspectos y atributos de las mismas, y mediante la tecnica de clustering.</p>
 <p>El objetivo del agrupamiento, fue el de identificar grupos de instituciones educativas de caracteristicas similares. Los datos fueron sacados de la base de datos  <a href= 'https://data.world/exercises/cluster-analysis-exercise-2' target='_blank'> CollegeScorecard </a> . 
 Antes de realizar la tecnica de clustering, se necesito realizar una preparacion de los datos, ya que muchos tenian valores vacios o erroneos. De las 7804 universidades que se encontraron en la base de datos se trabajo solo con 7279. Luego se realizaron pruebas para verificar la pertinencia y eficacia del metodo. Luego se realizo el clustering, y por ultimo se analizaron los resultados.</p>
@@ -189,14 +213,15 @@ src='https://www.youtube.com/embed/tgbNymZ7vqY'>
 
       filtro<-is.element(datos_geo$CLUSTER,  input$cluster) | is.null(input$cluster)
   
-      filtro2<-is.element(datos_geo$STABBR, input$estado ) | is.null(input$estado)
+      filtro2<-is.element(datos_geo$st_fips, input$estado ) | is.null(input$estado)
 #    tmap_mode('view') %>%
       tm_shape(shp = datos_geo[filtro & filtro2,])+ # coordenadas lat long
-      tm_dots(size = 0.05,col = "CLUSTER") })
+      tm_dots(size = 0.05,col = "CLUSTER",popup.vars=c('address',var_numeric,var_cat)) })
   values<-reactiveValues(universidad=c(), url_1=c(),url_2=c())
     output$map_plot_state <- renderTmap({
       tm_shape(mapa_usa )+
-      tm_polygons()})
+      tm_polygons('Cluster_top',popup.vars= c("mean_TUITFTE" ,
+                  "mean_INEXPFTE", "Cluster_1","Cluster_2","Cluster_3","Cluster_4"))})
     observeEvent(input$map_plot_marker_click,{
       click_<-input$map_plot_marker_click
       filtro<-paste('X',datos$OPEID,sep='')==click_$id
@@ -223,6 +248,10 @@ src='https://www.youtube.com/embed/tgbNymZ7vqY'>
                    })
                })
   #,escape=1)
+    output$descripcion_cate<-renderUI({
+      var_temp<-input$var_cat
+      HTML(paste('<b>',var_temp,'</b> :', diccionario[[var_temp]]),sep='' ) 
+    })
     output$descripcion_numerica<-renderUI({
       var_temp<-input$var_numeric
       HTML(paste('<b>',var_temp,'</b> :', diccionario[[var_temp]]),sep='' ) })
@@ -264,7 +293,7 @@ src='https://www.youtube.com/embed/tgbNymZ7vqY'>
   } )
   output$torta<-renderPlotly({
     fig <- plot_ly(data=cluster_total, labels = ~CLUSTER, values = ~total, type = 'pie')
-    fig <- fig %>% layout(title = 'United States Personal Expenditures by Categories in 1960',
+    fig <- fig %>% layout(title = 'Distribución de los cluster.',
                           xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                           yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
   })

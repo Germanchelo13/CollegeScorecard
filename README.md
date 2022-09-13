@@ -1,10 +1,15 @@
 # CollegeScorecard
 Segmentación de universidades en Estados Unidos de los datos abiertos en data.wold
 
-Para el curso de tecnicas de aprendizaje estadistico se propuso segmentar las universidades de estados unidos con los datos de CollegeScorecard.csv, con mas de 7000 universidades y 1500 columnas.
+En la siguiente carpeta se encuentra un análisis de clustering realizado a una base de datos con instituciones de educación superior de los Estados Unidos. El presente fue realizado con el fin de identificar grupos de instituciones educativas de características similares.
 
-En este repositorio se encuentra:
+En la carpeta se encuentran los siguientes elementos:
 
-- app.R: Código para crear la app en shiny.
-- 
-- 
+- CollegeScorecard.csv: Es la base de datos adquirida <a href= 'https://data.world/exercises/cluster-analysis-exercise-2' target='_blank'> CollegeScorecard </a>  sin cambios.
+- CollegeScorecard_result.csv:Es la base de datos producto con los cambios realizados.
+- map_states: Se encuentran archivos tipo shape para la gráficación de estados 
+- readme.md: Archivo con información general del proyecto. 	
+- app.R: Es la página en la cual se muestran los resultados del análisis.
+- desarrollo_cluster.ipynb: En este archivo se definió la creación de los clusters.
+- funciones.py: Definición de funciones para la creación de los clusters.
+- manipulacion_geografica.R: En este archivo se realizó la depuración de las coordenadas geográficas.
