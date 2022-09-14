@@ -21,4 +21,4 @@ Se aplico componentes principales que explicaran al menos un 80% de variabilidad
 
 ## Resultados:
 
-Se obtienen 4 cluster donde cada cluster tiene diferentes caracteristicas y en el <a href= 'https://germanalonso.shinyapps.io/CollegeScorecard/'target='_blank'> aplicativo <a/> se logra apreciar las caracteristicas de cada cluster.
+Se obtienen 4 cluster donde cada cluster tiene diferentes caracteristicas y en el <a href= 'https://germanalonso.shinyapps.io/CollegeScorecard/' target='_blank'> aplicativo <a/> se logra apreciar las caracteristicas de cada cluster.
