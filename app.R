@@ -92,7 +92,7 @@ usuario<- fluidPage(
                      
               )),
       tabItem(tabName = 'viz',
-              tabBox(id='t3',width= 12,tabPanel('Numeric',icon=icon('chart-scatter'),
+              tabBox(id='t3',width= 12,tabPanel(HTML('<i class="fa-duotone fa-chart-scatter"></i>Numeric'),icon=icon('chart-line'),
                               fluidPage( 
                                 fluidRow( br(), 
                                           selectInput(inputId ="var_numeric" , label = "Select variable"
@@ -130,11 +130,11 @@ usuario<- fluidPage(
                      )),
       # item descripcion 
       tabItem(tabName = 'intro',fluidRow(style='height:5vh'),
-              tabBox(id='t3',width=12,tabPanel(title='Contexto', 
+              tabBox(id='t3',width=12,tabPanel(HTML('<i class="fa-solid fa-book"></i> Contexto'), 
                                                 fluidPage(
                                                   fluidRow(uiOutput('intro_'))
                                                 )),
-                    tabPanel('Caracterización', fluidPage(fluidRow( 
+                    tabPanel(HTML('<i class="fa-solid fa-graduation-cap"></i> Caracterización'), fluidPage(fluidRow( 
                       uiOutput('caracterizacion'),
                       plotlyOutput('torta'))) ),
                     tabPanel('Video ',icon=icon('youtube'),fluidPage(
@@ -164,7 +164,7 @@ servidor<-function(input, output) {
     </br>
     <br>
     <b>Cluster 1 :</b>
-En este grupo se encuentran 2635 instituciones educativas con un costo por matrícula cercano a 7.6mil dólares, y con una inversión por estudiante próxima a los 3.9mil dólares. En promedio estas instituciones educativas albergan 2 programas y la mayoría son privadas y con ánimo de lucro. Dentro de estas predominan las licenciaturas, que a su vez suelen ser el mayor nivel académico. 
+En este grupo se encuentran 2635 instituciones educativas con un costo por matrícula cercano a 7.6mil dólares, y con una inversión por estudiante próxima a los 3.9mil dólares. En promedio estas instituciones educativas albergan 2 programas y la mayoría son privadas y con ánimo de lucro. Dentro de estas predominan las licenciaturas, que a su vez suelen ser el mayor nivel académico en estas institucions. 
 </br>
 <br>
 <br> <b>Cluster 2:</b>
@@ -176,7 +176,7 @@ En este grupo se encuentran 2097 instituciones educativas con un costo por matr�
 </br>
 <br>
 <b>Cluster 4:</b>
-En este grupo se encuentran 600 instituciones educativas con un costo por matrícula cercano a 6.5 mil dólares, y con una inversión próxima a 8 mil dólares. En promedio estas instituciones educativas albergan 27 programas académicos, y son públicas. Dentro de estas predominan las carreras profesional, y su nivel educativo más alto son los posgrados
+En este grupo se encuentran 610 instituciones educativas con un costo por matrícula cercano a 6.5 mil dólares, y con una inversión próxima a 8 mil dólares. En promedio estas instituciones educativas albergan 27 programas académicos, y son públicas. Dentro de estas predominan las carreras profesional, y su nivel educativo más alto son los posgrados
 </br>
 <br> </br>
          ")
@@ -184,15 +184,15 @@ En este grupo se encuentran 600 instituciones educativas con un costo por matrí
 output$intro_<-renderUI({
   HTML("
   <h2>Analisis: Instituciones de educacion superior en Estados Unidos</h2>
-  <p>Mediante el presente, se prete realizar un analisis estadistico para el conjunto de instituciones educativas del departamento de educacion de Estados Unidos. Este se realiza con el fin de ayudar a padres, estudiantes y politicos con la toma de decisiones. Para esto, se propuso y realizo una agrupacion de las diferentes instituciones educativas, basandonos en diferentes aspectos y atributos de las mismas, y mediante la tecnica de clustering.</p>
+  <p>Mediante el presente, se pretende realizar un analisis estadistico para el conjunto de instituciones educativas del departamento de educacion de Estados Unidos. Este se realiza con el fin de ayudar a padres, estudiantes y politicos con la toma de decisiones. Para esto, se propuso y realizo una agrupacion de las diferentes instituciones educativas, basandonos en diferentes aspectos y atributos de las mismas, y mediante la tecnica de clustering.</p>
 <p>El objetivo del agrupamiento, fue el de identificar grupos de instituciones educativas de caracteristicas similares. Los datos fueron sacados de la base de datos  <a href= 'https://data.world/exercises/cluster-analysis-exercise-2' target='_blank'> CollegeScorecard </a> . 
 Antes de realizar la tecnica de clustering, se necesito realizar una preparacion de los datos, ya que muchos tenian valores vacios o erroneos. De las 7804 universidades que se encontraron en la base de datos se trabajo solo con 7279. Luego se realizaron pruebas para verificar la pertinencia y eficacia del metodo. Luego se realizo el clustering, y por ultimo se analizaron los resultados.</p>
        ")
 }  )
 output$video_<- renderUI(
-  HTML("<iframe width='420' height='315'
-src='https://www.youtube.com/embed/tgbNymZ7vqY'>
-</iframe>")
+  HTML("  <a
+href='https://www.youtube.com/watch?v=CqstGgo_E4c&ab_channel=LuxScape''target='_blank'> Video promocional
+</a>")
 )
   output$info<-renderUI(  {
     tags$div(
