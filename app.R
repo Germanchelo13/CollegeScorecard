@@ -62,7 +62,9 @@ usuario<- fluidPage(
         fluidRow(style='height:5vh'),
         menuItem("Introduction", tabName="intro", icon=icon("users")),
         menuItem("Dataset", tabName="data", icon=icon("database")),
-        menuItem(text= "Geo loc",tabName = "map",icon = icon("earth-americas"))
+        menuItem(text= "Visualization",tabName = "viz",icon = icon("chart-line")),
+        menuItem(text= "Geo loc",tabName = "map",icon = icon("earth-americas")),
+        menuItem("Members", tabName="miembros", icon=icon("users"))
       )  ),
     # itmes
     dashboardBody(tabItems (
@@ -89,6 +91,43 @@ usuario<- fluidPage(
                               ))
                      
               )),
+      tabItem(tabName = 'viz',
+              tabBox(id='t3',width= 12,tabPanel(HTML('<i class="fa-duotone fa-chart-scatter"></i>Numeric'),icon=icon('chart-line'),
+                              fluidPage( 
+                                fluidRow( br(), 
+                                          selectInput(inputId ="var_numeric" , label = "Select variable"
+                                                      , choices = var_numeric ),
+                                          uiOutput('descripcion_numerica'),
+                                          plotlyOutput('boxplot_comp'), br(),br()
+
+                                ) 
+                                )
+                              ),
+                     tabPanel('Scatter',
+                              fluidPage(
+                                fluidRow(
+                                  fluidRow(column(6,
+                                                  selectInput(inputId ="var_numeric_1" , label = "Select var"
+                                                              , choices = var_numeric )),
+                                           column(6,
+                                                  selectInput(inputId ="var_numeric_2" , label = "Select var"
+                                                              , choices = var_numeric )) ),
+                                  uiOutput('descripcion_numerica_2'),
+                                  plotlyOutput('scatter_comp')
+                                )
+                              )
+                              ),
+                     tabPanel('Qualitative',icon=icon('chart-column'),
+                              fluidPage(
+                                fluidRow( selectInput(inputId ="var_cat" , 
+                                                      label = "Select variable"
+                                                      , choices = var_cat ),
+                                          uiOutput('descripcion_cate'),
+                                          plotlyOutput('bar_comp')
+                                          )
+                              ))
+                     
+                     )),
       # item descripcion 
       tabItem(tabName = 'intro',fluidRow(style='height:5vh'),
               tabBox(id='t3',width=12,tabPanel(HTML('<i class="fa-solid fa-book"></i> Contexto'), 
@@ -97,13 +136,18 @@ usuario<- fluidPage(
                                                 )),
                     tabPanel(HTML('<i class="fa-solid fa-graduation-cap"></i> Caracterización'), fluidPage(fluidRow( 
                       uiOutput('caracterizacion'),
-                      plotlyOutput('torta'))) ) )) ,
+                      plotlyOutput('torta'))) ),
+                    tabPanel('Video ',icon=icon('youtube'),fluidPage(
+                      fluidRow(uiOutput('video_') )
+                    )  ) )) ,
       tabItem(tabName="data",
               tabBox(id="t3",width= 12,
                      tabPanel(title="Data frame Universities",icon=icon('table'),
                               fluidPage(
                                 fluidRow( DT::dataTableOutput('datos_') )
-                              )))),
+                              ))
+                     
+              )),
       tabItem(tabName = 'miembros',tabBox(tabPanel(title='Mermbers',icon=icon('users-rectangle'),
                                                 fluidPage(
                                                   fluidRow(uiOutput('info'))
@@ -115,24 +159,16 @@ usuario<- fluidPage(
 )
 servidor<-function(input, output) {
   output$caracterizacion<-renderUI({
-
     HTML("
     <br><h2>¿Cómo son los cluster?  </h6>
     </br>
     <br>
-    <b>Cluster 1 :</b> Las universidades que pertenecen a este grupo cuentan con un costo de matrícula promeido de
-    7.6 mil (mas alto) dolares con una inversión por estudiante en promedio de 3.9 mil dolares
-En este grupo se encuentran 2635 instituciones educativas con un costo, sin embargo, cuentan con un promedio de 2 programas, en su mayoría son instituciones privadas y con ánimo de lucro.
-la gran parte de instituciones predominan y el maximo nivel academico son las licenciaturas.
+    <b>Cluster 1 :</b>
+En este grupo se encuentran 2635 instituciones educativas con un costo por matrícula cercano a 7.6mil dólares, y con una inversión por estudiante próxima a los 3.9mil dólares. En promedio estas instituciones educativas albergan 2 programas y la mayoría son privadas y con ánimo de lucro. Dentro de estas predominan las licenciaturas, que a su vez suelen ser el mayor nivel académico en estas institucions. 
 </br>
 <br>
 <br> <b>Cluster 2:</b>
-Las universidades que pertenecen a este grupo cuentan con de matrícula promedio de 14 mil dólares y una inversión promedio
-por estudiante de 7.3 mil dólares, pero albergan un promedio de 15 programas, en su mayoria son instituciones privadas sin ánimo de lucro.
-en cuanto a su nivel academico 
-En este grupo se encuentran 1.937 instituciones educativas con un costo de matrícula cercano a 14 mil dólares, y con una inversión próxima a 7.3 miles de dólares.
-En promedio estas instituciones educativas albergan 15 programas, y la mayoría 
-son privadas sin ánimo de lucro. Dentro de estas predominan las carreras profesionales, y su máximo nivel educativo son los posgrados. 
+En este grupo se encuentran 1.937 instituciones educativas con un costo de matrícula cercano a 14 mil dólares, y con una inversión próxima a 7.3 miles de dólares. En promedio estas instituciones educativas albergan 15 programas, y la mayoría son privadas sin ánimo de lucro. Dentro de estas predominan las carreras profesionales, y su máximo nivel educativo son los posgrados. 
 </br>
 <br>
 <b>Cluster 3:</b>
@@ -146,53 +182,32 @@ En este grupo se encuentran 610 instituciones educativas con un costo por matrí
          ")
   })
 output$intro_<-renderUI({
-  members_<-tags$div(
-    tags$b('Authors:'),tags$br(),
-    HTML(paste('&#9658' ,tags$a(href="https://www.linkedin.com/in/germ%C3%A1n-alonso-pati%C3%B1o-hurtado-828783241/", 
-                                icon("linkedin"), "Germán Patiño", target="_blank"),
-               'Estudiante de Estadística en la Universidad Nacional de Colombia.' ) ),
-    tags$br(),
-    HTML('&#9658 David Andres Cano Gonzalez Estudiante de ingenieria en sistemas en la Universidad Nacional de Colombia.' ),
-    tags$br(),
-    HTML('&#9658 David Garcia Blandon Estudiante de ingenieria en sistemas en la Universidad Nacional de Colombia.' ),
-    tags$br(),
-    HTML(paste('&#9658',tags$a(href='https://www.linkedin.com/in/juan-pablo-buitrago-diaz-5b960922b/',icon("linkedin"), 'Juan Pablo Buitrago Diaz', target="_blank"), 'Estudiante de ingenieria en sistemas en la Universidad Nacional de Colombia.') ),
-  )
-  HTML("<h2 style='text-align:center' > Introducción <h2/>
-  <h5>Para este aplicativo se considero una base de datos que se encuentra en <a href= 'https://data.world/exercises/cluster-analysis-exercise-2' 
-  target='_blank'> CollegeScorecard </a> que cuenta con información de 7804 universidades en 
-  Estados Unidos con cerca de 1000 columnas, pero en este aplicativo solo se considero 7279, las universidades fueron segmentadas en 
-  4 grupos donde el usuario y una selección de 23 columnas.<h5/>
-  <h2 style='text-align:center'> Objetivo <h2/>
-  <h5>Que el usuario tenga otra alternativa para encontrar una universidad que cumpla con sus espectativas y que se 
-  ubique en un lugar que sea acorde a sus necesidades.<h5/>
-  <h2 style='text-align:center'> ¿A quién va dirigido? <h2/>
-<h5>  A personas interedas en buscar universidades que cumplan con sus expectativas, pueden observar
-  la descripción de los 4 grupos e identificar cuales son de su interés, luego pueden ver la 
-  ubicación geográfica de las universidades según los grupos y el estado donde más se sientan 
-  comodos, ya sea por que busquen una universidad que cumpla con sus espectativas pero no a 
-  una distancia tan lejana de donde residen, el usuario puede dar click en un punto del mapa y 
-  obtener la URL de la página principal de dicha universidad.<h5>
-<h2 style='text-align:center'> Video promocional <h2/>
- <iframe width='560' height='315' style='text-align:center' 
- src='https://www.youtube.com/embed/CqstGgo_E4c'
- title='YouTube video player' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture' allowfullscreen></iframe>
-        <br/>   
-           <b >Miembros:</b>
-   <h5> &#9658 <a href='https://www.linkedin.com/in/germ%C3%A1n-alonso-pati%C3%B1o-hurtado-828783241/' target='_blank'>
-  <i class='fab fa-linkedin' role='presentation' aria-label='linkedin icon'></i>
-  Germán Patiño
-</a> Estudiante de Estadística en la Universidad Nacional de Colombia.<h5/>
-  <h5> &#9658 David Andres Cano Gonzalez Estudiante de ingenieria en sistemas en la Universidad Nacional de Colombia. <h5/>
-
-  <h5> &#9658 David Garcia Blandon Estudiante de ingenieria en sistemas en la Universidad Nacional de Colombia. <h5/>
-  <h5> &#9658 <a href='https://www.linkedin.com/in/juan-pablo-buitrago-diaz-5b960922b/' target='_blank'> 
-  <i class='fab fa-linkedin' role='presentation' aria-label='linkedin icon'></i>
-  Juan Pablo Buitrago Diaz
-</a> Estudiante de ingenieria en sistemas en la Universidad Nacional de Colombia. <h5/>  
-             " )  
-
+  HTML("
+  <h2>Analisis: Instituciones de educacion superior en Estados Unidos</h2>
+  <p>Mediante el presente, se pretende realizar un analisis estadistico para el conjunto de instituciones educativas del departamento de educacion de Estados Unidos. Este se realiza con el fin de ayudar a padres, estudiantes y politicos con la toma de decisiones. Para esto, se propuso y realizo una agrupacion de las diferentes instituciones educativas, basandonos en diferentes aspectos y atributos de las mismas, y mediante la tecnica de clustering.</p>
+<p>El objetivo del agrupamiento, fue el de identificar grupos de instituciones educativas de caracteristicas similares. Los datos fueron sacados de la base de datos  <a href= 'https://data.world/exercises/cluster-analysis-exercise-2' target='_blank'> CollegeScorecard </a> . 
+Antes de realizar la tecnica de clustering, se necesito realizar una preparacion de los datos, ya que muchos tenian valores vacios o erroneos. De las 7804 universidades que se encontraron en la base de datos se trabajo solo con 7279. Luego se realizaron pruebas para verificar la pertinencia y eficacia del metodo. Luego se realizo el clustering, y por ultimo se analizaron los resultados.</p>
+       ")
 }  )
+output$video_<- renderUI(
+  HTML("  <a
+href='https://www.youtube.com/watch?v=CqstGgo_E4c&ab_channel=LuxScape''target='_blank'> Video promocional
+</a>")
+)
+  output$info<-renderUI(  {
+    tags$div(
+      tags$b('Authors:'),tags$br(),
+      HTML(paste('&#9658' ,tags$a(href="https://www.linkedin.com/in/germ%C3%A1n-alonso-pati%C3%B1o-hurtado-828783241/", 
+                                  icon("linkedin"), "Germán Patiño", target="_blank"),
+                 'Estudiante de Estadística en la Universidad Nacional de Colombia.' ) ),
+      tags$br(),
+      HTML('&#9658 David Andres Cano Gonzalez Estudiante de ingenieria en sistemas en la Universidad Nacional de Colombia.' ),
+      tags$br(),
+      HTML('&#9658 David Garcia Blandon Estudiante de ingenieria en sistemas en la Universidad Nacional de Colombia.' ),
+      tags$br(),
+      HTML(paste('&#9658',tags$a(href='https://www.linkedin.com/in/juan-pablo-buitrago-diaz-5b960922b/',icon("linkedin"), 'Juan Pablo Buitrago Diaz', target="_blank"), 'Estudiante de ingenieria en sistemas en la Universidad Nacional de Colombia.') ),
+    )
+  })
   # mapa university 
   output$map_plot <- renderTmap({
 
@@ -233,13 +248,60 @@ output$intro_<-renderUI({
                    })
                })
   #,escape=1)
+    output$descripcion_cate<-renderUI({
+      var_temp<-input$var_cat
+      HTML(paste('<b>',var_temp,'</b> :', diccionario[[var_temp]]),sep='' ) 
+    })
+    output$descripcion_numerica<-renderUI({
+      var_temp<-input$var_numeric
+      HTML(paste('<b>',var_temp,'</b> :', diccionario[[var_temp]]),sep='' ) })
+  output$boxplot_comp<- renderPlotly({
+      plot_ly() %>%
+      add_boxplot(x=datos[,'CLUSTER'], y=datos[,input$var_numeric],
+                  color=datos[,'CLUSTER']  ) %>%
+      layout(xaxis=list(title= 'Cluster' ),
+             yaxis=list(title= input$var_numeric ),
+             legend=list(title=list(text='Cluster')))
+  })
 
+  output$scatter_comp<- renderPlotly({
+    plot_ly(data=datos, x=~get(input$var_numeric_1),
+            y=~get(input$var_numeric_2),type='scatter',
+            mode = 'markers',split =~CLUSTER  ) %>%
+      layout(xaxis=list(title= input$var_numeric_1),
+             yaxis=list(title= input$var_numeric_2),
+             legend=list(title=list(text='Cluster'))
+      )
+      
+  }) 
+  output$bar_comp<-renderPlotly({
+    datos_gruop<-datos %>% 
+      group_by(CLUSTER,get(input$var_cat) ) %>%
+      summarise(freq=n())
+    datos_gruop$prop<-0
+    for (i in cluster_total$CLUSTER){
+      filtro<-datos_gruop$CLUSTER==i
+      total_clusteri<-cluster_total$total[cluster_total$CLUSTER==i]
+      datos_gruop[filtro,]$prop<-round(100*datos_gruop[filtro,]$freq/total_clusteri,2)
+    }
+    names(datos_gruop)[2]<-input$var_cat
+    datos_gruop$CLUSTER<-factor(datos_gruop$CLUSTER)
+    
+    plot_ly(data=datos_gruop, x=~CLUSTER, y=~prop ,color=~get(input$var_cat),text=~freq,type='bar')%>%
+      layout(yaxis = list(title = 'Percentaje'),legend=list(title='Tipo universidad'))
+    
+  } )
   output$torta<-renderPlotly({
     fig <- plot_ly(data=cluster_total, labels = ~CLUSTER, values = ~total, type = 'pie')
     fig <- fig %>% layout(title = 'Distribución de los cluster.',
                           xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                           yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
   })
+  output$descripcion_numerica_2<- renderUI({
+    HTML(paste('<b>',input$var_numeric_1,'</b> :', diccionario[[input$var_numeric_1]],
+         '<br /> ','<b>',input$var_numeric_2,'</b> :', diccionario[[input$var_numeric_2]],sep='' ))
+  })
+  
   output$datos_<-DT::renderDataTable({
     datos}, options = list(scrollX = TRUE))
   
