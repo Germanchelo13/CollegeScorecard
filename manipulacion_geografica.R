@@ -5,6 +5,7 @@ library(dplyr)
 datos<- read.csv('CollegeScorecard_result.csv') # lectura resultado de python
 ##################################################################################
 filtro<-is.na(datos$LATITUDE) | is.na(datos$LONGITUDE) 
+sum(filtro)
 rest_coord<- datos[filtro,c("UNITID",'INSTNM',"CITY","STABBR","ZIP" )]
 rest_coord$address<-paste(rest_coord$INSTNM, rest_coord$CITY,rest_coord$STABBR,rest_coord$ZIP, 'USA', sep=",")
 new_localizacion<-geocode(rest_coord,'address', method = "arcgis" )
