@@ -8,13 +8,14 @@ library(shinydashboard)
 library(tidyverse)
 library(shinycssloaders)# to add a loader while graph is populating
 url_github<-"https://github.com/Germanchelo13/CollegeScorecard.git"
-mapa_usa<-st_read('map_states/mapa_CollegeScorecard.shp')
+datos<- read.csv('CollegeScorecard_result.csv',sep=",")
+mapa_usa<-st_read('mapa_CollegeScorecard.shp')
 names(mapa_usa)<-c("shapeName","Shape_Leng"  ,  "Shape_Area"  ,  "Level",    "shapeISO",
                    "shapeID",  "shapeGroup" ,   "shapeType","Cluster_top" ,  "mean_TUITFTE" ,
                    "mean_INEXPFTE", "Cluster_1","Cluster_2","Cluster_3","Cluster_4"   , 
                    "geometry" )
 
-datos<- read.csv('CollegeScorecard_result.csv')
+
 datos<-datos[,names(datos)[2:length(names(datos))]]
 datos$address<-paste(datos$INSTNM,  # direccion 
                      datos$CITY,
