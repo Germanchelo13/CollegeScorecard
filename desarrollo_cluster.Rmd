@@ -1,5 +1,5 @@
 ---
-title: "informe college scorecard"
+title: "Informe college scorecard"
 output: 
   html_document:
     toc: true
@@ -42,14 +42,16 @@ body {
   color: black;
   counter-reset:section;
 }
-caption {
+figure {
+  border: 2px dashed red;
+  margin: 1em 0;
+}
+figcaption {
+  padding: .5em;
+  font-size: 1.3em;
   text-align: center;
-  color: black;
 }
-caption::before {
-    counter-increment: section;
-    content:"Table - " counter(section);
-}
+
 ```
 
 
@@ -65,34 +67,26 @@ caption::before {
 # Introducción
 
 
+
 Para este trabajo se considero una base de datos que se encuentra en <a href= 'https://data.world/exercises/cluster-analysis-exercise-2' 
   target='_blank'> CollegeScorecard </a> que cuenta con información de 7804 universidades en 
-  Estados Unidos con cerca de 1000 columnas, A la hora de buscar una universidad existen multiples factores a considerar y alguno de estos es la ubicación de esta y que nivel educativo tiene, esta ultima puede ser algo complejo y dificil de medir ya que dependiento de la persona considera si una universidad es una universidad apropiada para él o no y si es sostenible para el.
+  Estados Unidos con cerca de 1000 columnas. A la hora de buscar una universidad existen multiples factores a considerar como la ubicación de esta y su nivel educativo, esta ultima puede ser algo complejo y difícil de medir ya que dependiento de la persona considera si una universidad es apropiada para él o sostenible.
 
 # Objetivo
 
-- Que el usuario tenga otra alternativa para encontrar una universidad que cumpla con sus espectativas y que se  ubique en un lugar que sea acorde a sus necesidades.
+- Ofrecer un aplicativo para que el usuario tenga una alternativa para encontrar  universidades.
 
-- Ofrecer una forma diferente de buscar una universidad.
+- Situar las universidades respecto a la ubicación que desea el usuario y además sea acorde a sus necesidades.  
 
 
 # Exploración de datos
 
-Se cuenta con los datos de CollegeScorecard.csv donde College scorecard fue creada por el gobierno de Estados Unidos con el fin de que los usuarios consulten el costo de las universidades y muchas caracteristicas pero tal vez no es una manera dinameca de encontrar una universidad.
-
-## CollegeScorecard.csv:
-
-Este contiene información de 7804 escuelas de educación superior con 1725 variables.
-
-## FullDataDocumentation.pdf:
-
-Este documento esta la explicación generica de los datos (algunas variables string se pasaron a int, unas como dummy otras asignando un entero a cada string).
+Para este trabajo se cuenta con los datos de CollegeScorecard.csv donde College scorecard es una herramienta en línea fue creada por el gobierno de Estados Unidos con el fin de que los usuarios consulten el costo de las universidades y muchas caracteristicas pero tal vez no es una manera dinameca de encontrar una universidad. Los datos cuentan con información de 7804 escuales de eduación superior con 1725 elementos por escuela. En <a href= 'https://data.world/exercises/cluster-analysis-exercise-2' 
+  target='_blank'> CollegeScorecard </a>  se puede encontrar un documento   __FullDataDocumentation.pdf__ que cuenta con una descripción general de las columnas del data set, después de explorar datos y definiciones de las variables se escogieron las siguientes variables.
 
 
 
-### Variables importantes:
-
-Luego de una lectura de la información que se tiene sobre las universidades y un analisis previo de datos faltantes se considero estas variables.
+## Seleccion de variables
 
 * ID: Existen varios tipos de identificadores en los datos que son:
   - UNITID, OPEID,  opeid6.
@@ -122,6 +116,7 @@ Luego de una lectura de la información que se tiene sobre las universidades y u
 * Programas:
   - CIP (190): identifica si la institución ofrece el programa, en qué nivel, y si la institución ofrece el programa y el nivel a través de un programa exclusivamente de educación a distancia. Se calcula a partir de los recuentos de adjudicaciones realizadas en cada CIP, tal y como se informa en IPEDS (el tipo de programa es solo virtual si vale 2, se desconoce el significado de los demás niveles).
 
+
 # Elaboración de cluster
 
 ## Requerimientos
@@ -135,10 +130,6 @@ Este analisis se hara en python y se usaron las siguientes librerias:
 - **plotly.express**: Plot mapa interactivo.
 - **sklearn.cluster**: Algoritmos de cluster, documentación: https://scikit-learn.org/stable/modules/clustering.html 
 - **sklearn.decomposition**: Aplicación de PCA.
-
-
-También se crean algunas funciones que se usaran en el proceso.
-
 
 
 ```{python id="YKGax0S7y85E"}
@@ -234,27 +225,25 @@ def to_dummy(datos_:pd.DataFrame, variables_dumy:list)->pd.DataFrame:
 
     return datos_
 
-def datos_to_pca(datos_:pd.DataFrame, variables_:list, prop_var:float)->pd.DataFrame:
-    """
-    Devuelve el numero de componentes que expliquen un prop_var*100% de variabilidad. 
-    datos_: pd.DataFrame (se recomienda que esten estandarizados).
-    variables_: list nombre de las variables que se les aplicara el PCA.
-    prop_var: float proporción de variabilidad que se quiere explicar.
-    return: pd.DataFrame con las componentes que explican al menos un % prop varianzas.
-    """
-    pca_=sklearn.decomposition.PCA(len(variables_))
-    pca_.fit(datos_[variables_])
-    varianza_acumulate=pd.Series(pca_.explained_variance_ratio_).cumsum()
-    varianza_acumulate.index=varianza_acumulate.index+1
-    num_componentes=varianza_acumulate[varianza_acumulate>=prop_var].index[0]
-    varianza_acumulate.plot(xlabel='Número de componentes', ylabel='proporción de varibilidad acumulada',grid=True,marker='o')
-    print('Las '+str(num_componentes)+' componentes explican un '
-    +str(round(varianza_acumulate[num_componentes]*100,2))+
-        '% de variabilidad de los datos esta función retorna las '+str(num_componentes)+'componentes')
-    pca_final=sklearn.decomposition.PCA(num_componentes)
-    pca_final.fit(datos_[variables_])
-
-    return pd.DataFrame(pca_final.fit_transform(datos_[variables_]))
+# def datos_to_pca(datos_:pd.DataFrame, variables_:list, prop_var:float)->pd.DataFrame:
+#     """
+#     Devuelve el numero de componentes que expliquen un prop_var*100% de variabilidad. 
+#     datos_: pd.DataFrame (se recomienda que esten estandarizados).
+#     variables_: list nombre de las variables que se les aplicara el PCA.
+#     prop_var: float proporción de variabilidad que se quiere explicar.
+#     return: pd.DataFrame con las componentes que explican al menos un % prop varianzas.
+#     """
+#     pca_=sklearn.decomposition.PCA(len(variables_))
+#     pca_.fit(datos_[variables_])
+#     varianza_acumulate=pd.Series(pca_.explained_variance_ratio_).cumsum()
+#     varianza_acumulate.index=varianza_acumulate.index+1
+#     num_componentes=varianza_acumulate[varianza_acumulate>=prop_var].index[0]
+#     varianza_acumulate.plot(xlabel='Número de componentes', ylabel='proporción de varibilidad acumulada',grid=True,marker='o')
+#     plt.show()
+#     #pca_final=sklearn.decomposition.PCA(num_componentes)
+#     #pca_final.fit(datos_[variables_])
+#     #data_result=pd.DataFrame(pca_final.fit_transform(datos_[variables_]))
+#     #return #data_result
 
 
 ```
@@ -265,7 +254,7 @@ def datos_to_pca(datos_:pd.DataFrame, variables_:list, prop_var:float)->pd.DataF
 
 
 
-En esta sección se analisara posibles datos faltantes, uno de los factores que se encontro es que existen universidades que no tienen publica su información en algunas columnas y los registros estan como 'PrivacySuppressed' esto se va a considerar como un valor faltante  (__NA__)
+En esta sección se analisara posibles datos faltantes, uno de los factores que se encontro es que existen universidades que no tienen publica su información en algunas columnas y los registros estan como 'PrivacySuppressed' esto se va a considerar como un valor faltante  (__NA__).
 
 
 
@@ -274,9 +263,7 @@ En esta sección se analisara posibles datos faltantes, uno de los factores que 
 datos=pd.read_csv('https://query.data.world/s/zm2i4iby5glnnw4ktejngj775gg7j3')
 # diccionario de los datos 
 diccionario = pd.read_csv('https://query.data.world/s/mwzxjzee7zbruhcovlmoq5unjy2xdq')
-```
 
-```{python}
 # guardar variables cip
 variables_cip=[]
 for i in datos.columns:
@@ -299,7 +286,9 @@ variables_num=[  'TUITFTE', 'INEXPFTE',# 'AVGFACSAL', # financiacion monetaria p
 variables=[*variables_dum,*variables_num ]
 ```
 
-```{python}
+
+
+```{python, plot1, fig.caption="Distribución de NA "}
 valores_faltantes=datos[variables].isna().sum()+(datos[variables]=='PrivacySuppressed').sum()
 na_cip=datos[variables_cip].isna().any(axis=1)
 valores_faltantes=valores_faltantes.append(pd.Series({"CIP":na_cip.sum() }))
@@ -313,46 +302,34 @@ plt.title("Total NA de las variables")
 plt.show()
 
 ```
+<figcaption> Fig 1: Distribución de NA </figcaption>
 
-De estas variables se tiene esta cantidad de NA e incluso las variables CIP se encuentra 
+En la Fig 1 se observa la frecuencia de NA por cada variable, en la variable CIP se consideran todas las variables y la frecuencia es que al menos un regitro tiene NA. Para este trabajo se omiten las universidades que con estas variables tengan al menons un NA.
 
-- variables_id: identificar a las universidades como ubicación, nombre, código id, pagina wen.
+```{python, plot4}
+datos_resultado=datos.loc[(~datos[[*variables_cip,*variables]].isna().any(axis=1)) & ((datos[['HIGHDEG', 'PREDDEG']]!=0).any(axis=1))
+                          ,[*variables_id,*variables,*variables_cip] ].reset_index().drop(labels='index',axis=1)
+```
 
-- variables_dum: Las identificamos como variables categoricas y en su mayoria tienen 2 niveles y no es necesario crear una dummy pues ya estan definias 0,1. Las variables CONTROL, HIGHDEG, PREDDEG se debe crear una dummy para cada una.
+De las  7804  escuales de educación superior se trabajara solo con  7279  un  93.27 % de las escuales.
 
-- variables_num: 5 variables, una de conteo, 2 de promedio y 2 de proporción.
-
-Estandarizar (X-X_min)/(X_max-X_min) las numericas para una escata de 0 a 1 igual que las dummy.
-
-
-- Celdas con 'PrivacySuppressed' hay datos que las universidades tienen como privado (los consideramos NA´s) , hay 7639 filas que tienen al menos una columna con información privada.
-- Pero con las variables num y dum seleccionadas no se tiene ese problema.
-
-
-# Datos creados:
-
-- **datos**: Es el dataframe completo sin filtros.
-
-- **datos_resultado**: Es el datafrrame con las variables id y las variables (numericas y dummy seleccionadas) sin registro de NA en las dummy y numerica y es el dataframe que se le añade la columna de cluster.
-
-- **datos_estandar**: Es el datos_resultado con las variables numericas y dummy pero estandarizando las numericas de 0 a 1 y las categoricas a dummmy.
-
-- **datos_pca**: Son los datos que se le aplicaron PCA a datos_estandar.
-
-
-La idea es solo tener estos dataframe no es necesario crear mas.
 
 
 ```{python }
-datos_resultado=datos.loc[(~datos[[*variables_cip,*variables]].isna().any(axis=1)) & ((datos[['HIGHDEG', 'PREDDEG']]!=0).any(axis=1))
-                          ,[*variables_id,*variables,*variables_cip] ].reset_index().drop(labels='index',axis=1)
-print('De las ' ,datos.shape[0],' universidades se trabajara solo con ' ,
-      datos_resultado.shape[0],' un ' ,round(datos_resultado.shape[0]/datos.shape[0]*100,2),
-      '% de las univerisadad' )
 datos_resultado['NUM_PROGRAM']=(datos_resultado[variables_cip]>0).sum(axis=1)
 variables=[*variables,'NUM_PROGRAM']
 variables_num=[*variables_num,'NUM_PROGRAM']
 ```
+
+Para las variables CIP se crea una variable NUM_PROGRAM que es el número de programas que ofrece la universidad, es decir, cada programa se cuenta si la variable CIP tiene 1 o 2 y se obtiene el total en cada uno.
+
+Las variables se clasificaran como:
+
+- variables_id: identificar a las universidades como ubicación, nombre, código id, pagina web (no entran en el desarrollo de cluster).
+
+- variables_dum: Las identificamos como variables categoricas y en su mayoria tienen 2 niveles y no es necesario crear una dummy pues ya estan definias 0,1. Las variables CONTROL, HIGHDEG, PREDDEG se debe crear una dummy para cada una.
+
+- variables_num: 5 variables, una de conteo, 2 de promedio.
 
 
 ## Analisis descriptivo
@@ -361,22 +338,28 @@ A continuacion, analizamos las correlaciones entre las variables numericas escog
 
 
 ```{python}
+plt.figure(1)
 sns.heatmap(datos_resultado[variables_num].corr(), annot=True)
 plt.show()
 ```
 
-Las variables INEXPFTE  y TUITFTE Son las que presentan mayor correlacion, siendo esta de 0.38, la cual no es muy alta. 
+<figcaption> Fig 2: Correlación  entre variables  </figcaption>
+
+ 
+En la Figure Fig 2 se observa que las variables INEXPFTE  y TUITFTE Son las que presentan mayor correlación, siendo esta de 0.38, la cual no es muy alta. 
 
 
 # Segmentación
 
 
 ## Estandarización y creación de dummy.
-- Para las variables numericas se estandariza para que se encuentren entre 0 y 1.
 
-- Aunque las variables categoricas la mayoria ya tienen una estructura 0,1  hay 3 variables que son numericas pero con mas de 2 niveles.
+- Para las variables numéricas se estandariza para que se encuentren entre 0 y 1 $\frac{X-X_{min} }{(X_{max}-X_{min})}$ las numéricas para una escala de 0 a 1 igual que las dummy.
 
-- Los datos_estandar se encuentran estandarizados para aplicar una segmentación para todos.
+
+- Aunque las variables categóricas la mayoría ya tienen una estructura 0,1  hay 3 variables que son numéricas pero con más de 2 niveles lo que se requiere crear dummy para estas.
+
+
 
 
 ```{python}
@@ -388,24 +371,49 @@ datos_estandar=fn.to_dummy(datos_estandar,['CONTROL', 'HIGHDEG', 'PREDDEG' ])
 ##  Aplicación de PCA
 
 
-```{python }
-datos_pca=fn.datos_to_pca(datos_estandar,list(datos_estandar), 0.8)
+Luego de tener una estandarización y creación de variables dummy estas se usaran para la aplicación de PCA.
+
+```{python plot50}
+variables_=list(datos_estandar)
+pca_=sklearn.decomposition.PCA(len(variables_))
+pca_.fit(datos_estandar[variables_])
+varianza_acumulate=pd.Series(pca_.explained_variance_ratio_).cumsum()
+varianza_acumulate.index=varianza_acumulate.index+1
+#num_componentes=varianza_acumulate[varianza_acumulate>=prop_var].index[0]
+varianza_acumulate.plot(xlabel='Número de componentes', ylabel='proporción de varibilidad acumulada',grid=True,marker='o')
+plt.show()
 ```
 
-- En este gráfico vemos que las 2 primeras componentes explican casi un 60% de variabilidad de las variables seleccionadas, 4 vairables explican casi un 90% de variabilidad de los datos. 
+<figcaption> Fig 3: Variabilidad acumulada por componentes.  </figcaption>
+
+- En la Fig 3 vemos que las 2 primeras componentes explican casi un 60% de variabilidad de las variables seleccionadas, 4 vairables explican casi un 90% de variabilidad de los datos. 
 
 
-```{python }
+```{python}
+pca_final=sklearn.decomposition.PCA(4)
+pca_final.fit(datos_estandar[list(datos_estandar)])
+datos_pca=pd.DataFrame(pca_final.fit_transform(datos_estandar[variables_]))
+```
+
+
+
+
+
+```{python plot6}
 grafico_comparativo_num = sns.PairGrid(datos_pca )
 grafico_comparativo_num=grafico_comparativo_num.map_diag(sns.kdeplot)
 grafico_comparativo_num=grafico_comparativo_num.map_upper(sns.scatterplot)
 grafico_comparativo_num.map_lower(sns.kdeplot)
 ```
 
-En las componentes principales no se observa un numero de grupos ideal, pero si se observa que hay una tendencia de agrupacion en los datos. 
+<figcaption> Fig 4: Disperción de las 4 PCA  </figcaption>
+
+En la Fig 4 se observa que en las componentes principales no se observa un número de grupos ideal, pero si se observa que hay una tendencia de agrupacion en los datos. 
 
 
 ## Optimizacion de clusteres
+
+Para la creación de cluster se usaron varios metodos pero el que mostro mejores resultados fue el k-means, por lo anterior solo se mostrara los resultados con este metodo.
 
 Entrenamos el modelo con diferentes numeros de clusters y almacenamos diferentes tipos de scoring, como son: el sse, score k means, score espectral y score birch. 
 
@@ -438,143 +446,56 @@ axs[1,0].plot(range(2, num_cluster), score_spectral,marker='o')
 axs[1,0].set(xlabel="Number of Clusters",ylabel="Score spectral")
 axs[1,1].plot(range(2, num_cluster), score_bir,marker='o')
 axs[1,1].set(xlabel="Number of Clusters",ylabel="Score Birch")
+plt.show()
 ```
 
-Un número minimo de cluster apropiados para las universidades podria ser 4, ya que este presenta un sse pequeño y un socre serca del 0.6 lo que es alto y a medida que se añade mas numero de cluster este factor no presenta un cambio tan significativo.
+<figcaption> Fig 5: Score clustering k-means  </figcaption>
+
+En la Fig 5 se observa que un número minimo de cluster apropiados para las universidades podría ser 4 o mas, ya que este presenta un sse pequeño y un socre serca del 0.6 lo que es alto y a medida que se añade mas numero de cluster este factor no presenta un cambio tan significativo.
 
 ```{python tags=c()}
 cluster_0=fn.kmeans(datos_pca,list(datos_pca)[0:4], 4, 133 )
 datos_pca['CLUSTER']=cluster_0
 datos_pca['CLUSTER']='Cluster_'+(datos_pca['CLUSTER']+1).astype(str)
 datos_resultado['CLUSTER']=datos_pca['CLUSTER']
-```
-
-```{python tags=c()}
 sns.scatterplot(x=0,y=1,data=datos_pca,hue='CLUSTER')
 ```
 
-En este gráfico se observa en los graficos de dispersión una agrupación no muy clara y en los de densidad entre 2 variables nos muestra una posible agrupación mas clara, donde un grupo en especifico esta muy concentrado lo que sugiere un grupo de universidades que es muy frecuente.
+<figcaption> Fig 6: Disperción de los cluster con 2 componentes  </figcaption>
+
+En la Fig 6 se observa que el metodo con 4 cluster parece funcionar bien, sin embargo se probro con mas número de cluster y no se logra una mejoría para evitar sobre agrupación un grupo ideal puede ser de 4.
 
 ## Tablas comparativas 
 
 - En esta sección se realizara la descripción de los cluster creados para darle atributos y definir si tienen sentido o no.
 
 
-```{python include=F, eval=F}
-# datos_resultado['CLUSTER']= cluster_0
-grafico_comparativo_num = sns.PairGrid(datos_resultado,vars =variables_num,hue='CLUSTER' )#,diag_sharey=False,diag_sharex=False)
-# grafico_comparativo_num.map_diag(sns.kdeplot)#,kde=True,facet_kws=dict(sharey=False) )
-grafico_comparativo_num=grafico_comparativo_num.map_upper(sns.scatterplot,size=0.3)#,facet_kws=dict(sharey=False))
-grafico_comparativo_num=grafico_comparativo_num.map_lower(sns.scatterplot,size=0.3)#,facet_kws=dict(sharey=False))
-grafico_comparativo_num.add_legend()
-```
-
 ```{python }
 tabla_=fn.tabla_dinamica(datos_resultado,'CLUSTER',variables_num,True , 2, False)
 ```
 
+<caption> Tabla 1: Descriptivos variables númericas   </caption>
 
-`r kbl(py$tabla_, escape = F, align = "c", caption="Variables númericas") %>%  kable_classic_2("striped", full_width = F)`
+`r kbl(py$tabla_, escape = F, align = "c", caption="Variables númericas",row.names = F) %>%  kable_classic_2("striped", full_width = F)`
 
-\begin{table}[ht]
-\centering
-\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l}
-  \hline
-   & TUITFTE &   &   &   &   &   &   &   &   &   &   \\ 
-   & frec & min & Q1 & Q2 & Q3 & max & atipico sup & atipico inf & media & sum & sd \\ 
-  4 & 610 & 527  & 5.011,75 & 6.551,5 & 9.273  & 88.466  & 28 & 0 & 7.769,96 & 4.739.675  & 6.211,54 \\ 
-  3 & 2.097 & 0  & 1.948  & 5.171  & 12.239  & 95.815  & 17 & 0 & 7.913,25 & 16.594.082  & 7.566,54 \\ 
-  2 & 1.937 & 0  & 10.047  & 13.956  & 18.300  & 123.492  & 66 & 0 & 15.075,69 & 29.201.612  & 8.070,64 \\ 
-  1 & 2.635 & 0  & 4.498  & 7.631  & 10.476,5 & 207.213  & 102 & 0 & 8.319,25 & 21.921.215  & 8.070,16 \\ 
-  Total & 7.279 & 0  & 4.352,5 & 8.747  & 13.454,5 & 207.213  & 197 & 0 & 9.954,19 & 72.456.584  & 8.376,3 \\ 
-    & INEXPFTE &   &   &   &   &   &   &   &   &   &   \\ 
-   & frec & min & Q1 & Q2 & Q3 & max & atipico sup & atipico inf & media & sum & sd \\ 
-   4 & 610 & 0  & 6.524,5 & 7.996,5 & 10.367  & 307.089  & 57 & 1 & 11.568,4 & 7.056.721  & 17.290,16 \\ 
-   3 & 2.097 & 44  & 3.490  & 4.626  & 5.851  & 40.655  & 96 & 0 & 5.021 9 & 10.529.227  & 2.987,3 \\ 
-   2 & 1.937 & 436  & 4.480  & 7.309  & 11.411  & 181.655  & 131 & 0 & 9.762,98 & 18.910.887  & 10.504,16 \\ 
-   1 & 2.635 & 0  & 2.333  & 3.931  & 6.560,5 & 142.817  & 113 & 0 & 5.252,15 & 13.839.403  & 6.202,51 \\ 
-   Total & 7.279 & 0  & 3.295  & 5.200  & 7.846  & 307.089  & 476 & 0 & 6.915,27 & 50.336.238  & 8.767,39 \\ 
-     &   &   &   &   &   &   &   &   &   &   &   \\ 
-     & NUM\_PROGRAM &   &   &   &   &   &   &   &   &   &   \\ 
-    & frec & min & Q1 & Q2 & Q3 & max & atipico sup & atipico inf & media & sum & sd \\ 
-   4 & 610 & 0 & 20  & 27  & 50  & 155 & 28 & 0 & 37,66 & 22.973 & 26,16 \\ 
-   3 & 2.097 & 1 & 8  & 20  & 45  & 128 & 27 & 0 & 28,77 & 60.333 & 25,59 \\ 
-   2 & 1.937 & 0 & 2  & 15  & 26  & 130 & 87 & 0 & 18,76 & 36.339 & 19,8 \\ 
-   1 & 2.635 & 1 & 1  & 2  & 3  & 42 & 305 & 0 & 3,64 & 9.583 & 5 6 \\ 
-   Total & 7.279 & 0 & 2  & 8  & 25  & 155 & 499 & 0 & 17,75 & 129.228 & 22,36 \\ 
-   \hline
-\end{tabular}
-\end{table}
-
-
+En la Tabla 1 se puede observar como en cada variable con los 4 grupos se muestra una diferencia entre medias y cuando se uso mas cantidad de grupos no se lograba una mejor clasificación.
 
 ```{python }
 tabla_=fn.tabla_dinamica(datos_resultado,'CLUSTER',variables_dum,False , 2, False)
 ```
 
+<caption> Tabla 2: Descriptivos variables categóricas   </caption>
+
+
 `r kbl(py$tabla_, escape = F, align = "c", caption="Variables categoricas", row.names = F) %>%  kable_classic_2("striped", full_width = F)`
 
+Las proporciones en cada grupo parecen diferir bien entre cluster por lo que se puede dar una descripción clara de cada cluster.
 
+# Resultados.
 
+Según las tablas y con lo que se realizo internamente no se encontro otra segmentación que mejorara estas descripciones ya que a medida que se partian los grupos sus descriptivos no mejoraran en gran medida la diferencia entre si por lo tanto, esta es la descripción de cada cluster
 
-
-\begin{table}[ht]
-\centering
-\begin{tabular}{|r|l|r|l|r|l|r|l|r|l|l|l|l|l|}
-
-  \hline
-
-&  &  &  &  &  &  &  &  &  &  &  &  \\ 
-   Variables & CONTROL &   &   &   &   &   &   &   &  &  &  &  \\ 
-   CLUSTER & 3 & Prop & 2 & Prop & 1 & Prop & Total & Prop &  &  &  &  \\ 
-   4 & 0 & 0,0\% & 0 & 0,0\% & 610 & 100,0\% & 610 & 8,38\% &  &  &  &  \\ 
-   3 & 957 & 45,64\% & 104 & 4,96\% & 1.036 & 49,4\% & 2.097 & 28,81\% &  &  &  &  \\ 
-   2 & 329 & 16,99\% & 1.608 & 83,01\% & 0 & 0,0\% & 1.937 & 26,61\% &  &  &  &  \\ 
-   1 & 2.129 & 80,8\% & 160 & 6,07\% & 346 & 13,13\% & 2.635 & 36,2\% &  &  &  &  \\ 
-   Total & 3.415 & 46,92\% & 1.872 & 25,72\% & 1.992 & 27,37\% & 7.279 & 100,0\% &  &  &  &  \\ 
-   &  &  &  &  &  &  &  &  &  &  &  &  \\ 
-  Variables & HIGHDEG &   &   &   &   &   &   &   &   &   &  &  \\ 
-   CLUSTER & 4 & Prop & 3 & Prop & 2 & Prop & 1 & Prop & Total & Prop &  &  \\ 
-   4 & 549 & 90,0\% & 61 & 10,0\% & 0 & 0,0\% & 0 & 0,0\% & 610 & 8,38\% &  &  \\ 
-   3 & 40 & 1,91\% & 319 & 15,21\% & 1.738 & 82,88\% & 0 & 0,0\% & 2.097 & 28,81\% &  &  \\ 
-   2 & 1.454 & 75,06\% & 483 & 24,94\% & 0 & 0,0\% & 0 & 0,0\% & 1.937 & 26,61\% &  &  \\ 
-   1 & 13 & 0,49\% & 33 & 1,25\% & 0 & 0,0\% & 2.589 & 98,25\% & 2.635 & 36,2\% &  &  \\ 
-   Total & 2.056 & 28,25\% & 896 & 12,31\% & 1.738 & 23,88\% & 2.589 & 35,57\% & 7.279 & 100,0\% &  &  \\ 
-    &  &  &  &  &  &  &  &  &  &  &  &  \\ 
-  17  Variables & PREDDEG &   &   &   &   &   &   &   &   &   &  &  \\ 
-   CLUSTER & 4 & Prop & 3 & Prop & 2 & Prop & 1 & Prop & Total & Prop &  &  \\ 
-   4 & 15 & 2,46\% & 588 & 96,39\% & 0 & 0,0\% & 7 & 1,15\% & 610 & 8,38\% &  &  \\ 
-   3 & 0 & 0,0\% & 0 & 0,0\% & 1.440 & 68,67\% & 657 & 31,33\% & 2.097 & 28,81\% &  &  \\ 
-   2 & 277 & 14,3\% & 1.545 & 79,76\% & 93 & 4,8\% & 22 & 1,14\% & 1.937 & 26,61\% &  &  \\ 
-   1 & 0 & 0,0\% & 0 & 0,0\% & 0 & 0,0\% & 2.635 & 100,0\% & 2.635 & 36,2\% &  &  \\ 
-   Total & 292 & 4,01\% & 2.133 & 29,3\% & 1.533 & 21,06\% & 3.321 & 45,62\% & 7.279 & 100,0\% &  &  \\ 
-    &  &  &  &  &  &  &  &  &  &  &  &  \\ 
-   Variables & DISTANCEONLY &   &   &   &   &   &  &  &  &  &  &  \\ 
-   CLUSTER & 1 & Prop & 0 & Prop & Total & Prop &  &  &  &  &  &  \\ 
-    4 & 3 & 0,49\% & 607 & 99,51\% & 610 & 8,38\% &  &  &  &  &  &  \\ 
-    3 & 10 & 0,48\% & 2.087 & 99,52\% & 2.097 & 28,81\% &  &  &  &  &  &  \\ 
-    2 & 22 & 1,14\% & 1.915 & 98,86\% & 1.937 & 26,61\% &  &  &  &  &  &  \\ 
-    1 & 2 & 0,08\% & 2.633 & 99,92\% & 2.635 & 36,2\% &  &  &  &  &  &  \\ 
-   Total & 37 & 0,51\% & 7.242 & 99,49\% & 7.279 & 100,0\% &  &  &  &  &  &  \\ 
-    &  &  &  &  &  &  &  &  &  &  &  &  \\ 
-   Variables & HCM2 &   &   &   &   &   &  &  &  &  &  &  \\ 
-   CLUSTER & 1 & Prop & 0 & Prop & Total & Prop &  &  &  &  &  &  \\ 
-   4 & 0 & 0,0\% & 610 & 100,0\% & 610 & 8,38\% &  &  &  &  &  &  \\ 
-   3 & 9 & 0,43\% & 2.088 & 99,57\% & 2.097 & 28,81\% &  &  &  &  &  &  \\ 
-   2 & 12 & 0,62\% & 1.925 & 99,38\% & 1.937 & 26,61\% &  &  &  &  &  &  \\ 
-   1 & 43 & 1,63\% & 2.592 & 98,37\% & 2.635 & 36,2\% &  &  &  &  &  &  \\ 
-   Total & 64 & 0,88\% & 7.215 & 99,12\% & 7.279 & 100,0\% &  &  &  &  &  &  \\ 
-   \hline
-\end{tabular}
-\end{table}
-
-```{python include=FALSE}
-#import jupytext
-# !jupytext --to rmarkdown desarrollo_cluster.ipynb
-```
-
-En las tablas resultante se puede dar una descripción de los cluster y esta es una descripción mas general.
-
+## Descripciones de clusters
 
 - **Cluster 1 :** En este grupo se encuentran 2635 instituciones educativas con un costo por matrícula cercano a 7.6mil dólares, y con una inversión por estudiante próxima a los 3.9mil dólares. En promedio estas instituciones educativas albergan 2 programas y la mayoría son privadas y con ánimo de lucro. Dentro de estas predominan las licenciaturas, que a su vez suelen ser el mayor nivel académico en estas institucions. 
 
@@ -587,33 +508,8 @@ En las tablas resultante se puede dar una descripción de los cluster y esta es 
 - **Cluster 4:** En este grupo se encuentran 610 instituciones educativas con un costo por matrícula cercano a 6.5 mil dólares, y con una inversión próxima a 8 mil dólares. En promedio estas instituciones educativas albergan 27 programas académicos, y son públicas. Dentro de estas predominan las carreras profesional, y su nivel educativo más alto son los posgrados
 
 
+# Conclusión 
 
-```{python eval=FALSE, include=FALSE}
-# titulacion=['Certificate degree', 'Associate degree', 'Bachelor´s degree', 'Graduate degree']
-datos_resultado[['st_fips'] ]=datos_resultado[['st_fips'] ].replace(list(diccionario.iloc[27:85].VALUE.astype(int)), 
-                                                                    list(diccionario.iloc[27:85].LABEL) )
-datos_resultado[['CONTROL']]=datos_resultado[['CONTROL']].replace(list(diccionario.iloc[24:27].VALUE.astype(int)), 
-                                                                  list(diccionario.iloc[24:27].LABEL))
-datos_resultado[['PREDDEG']]=datos_resultado[['PREDDEG']].replace(list(diccionario.iloc[15:19].VALUE.astype(int)), 
-                                                                  list(diccionario.iloc[15:19].LABEL))
-datos_resultado[['HIGHDEG']]=datos_resultado[['HIGHDEG']].replace(list(diccionario.iloc[20:24].VALUE.astype(int)), 
-                                                                  list(diccionario.iloc[20:24].LABEL))
-datos_resultado[['RELAFFIL']]=datos_resultado[['RELAFFIL']].replace(list(diccionario.iloc[201:266].VALUE.astype(int)), 
-                                                                  list(diccionario.iloc[201:266].LABEL))
-datos_resultado[['DISTANCEONLY']]=datos_resultado[['DISTANCEONLY']].replace(list(diccionario.iloc[519:521].VALUE.astype(int)), 
-                                                                  list(diccionario.iloc[519:521].LABEL))
+Con las variables escogidas y los cluster formados se logro a una descrpción clara de cada uno de los cluster y además para el desarrollo de la app que un usuario tenga que entender demasiados cluster puede que no sea lo mas conveniente. En el caso de colombia es posible general la misma metodología con variables como número de programas, costo de matricula promedio, inversión de dinero por estudiante, tipo de universidad, y que nivel educativo ofrecen o ya sea cual predomina o el maximo nivel academico.
 
-filtro=~('www'==datos_resultado['INSTURL'].apply(lambda x: str(x)[0:3]) )
-datos_resultado.loc[filtro,'INSTURL' ]='www.'+datos_resultado.loc[filtro,'INSTURL' ]
-datos_resultado['INSTURL']=("<li class='dropdown'>  <a href='https://"+datos_resultado['INSTURL']+
-                            "' target='_blank'>Main web page </a> </li>")
-
-datos_resultado['RELAFFIL']=datos_resultado['RELAFFIL'].fillna('')
-filtro=datos_resultado['RELAFFIL']!=''
-datos_resultado.loc[filtro,'RELAFFIL']="<li class='dropdown'> Religion: "+datos_resultado.loc[filtro,'RELAFFIL'] +'</li>'
-
-datos_resultado=datos_resultado.drop(labels=variables_cip, axis=1)
-
-#datos_resultado.to_csv('CollegeScorecard_result.csv', index=False)
-```
 

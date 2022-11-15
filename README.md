@@ -1,18 +1,18 @@
 # CollegeScorecard
-Segmentación de universidades en Estados Unidos de los datos abiertos en <a href= 'https://data.world/exercises/cluster-analysis-exercise-2' target='_blank'> CollegeScorecard </a>
+SegmentaciC3n de universidades en Estados Unidos de los datos abiertos en <a href= 'https://data.world/exercises/cluster-analysis-exercise-2' target='_blank'> CollegeScorecard </a>
 
-En la siguiente carpeta se encuentra un análisis de clustering realizado a una base de datos con instituciones de educación superior de los Estados Unidos. El presente fue realizado con el fin de identificar grupos de instituciones educativas de características similares.
+En la siguiente carpeta se encuentra un anC??lisis de clustering realizado a una base de datos con instituciones de educaci??n superior de los Estados Unidos. El presente fue realizado con el fin de identificar grupos de instituciones educativas de caracterC-sticas similares.
 
 En la carpeta se encuentran los siguientes elementos:
 
 - **CollegeScorecard.csv**: Es la base de datos adquirida <a href= 'https://data.world/exercises/cluster-analysis-exercise-2' target='_blank'> CollegeScorecard </a>  sin cambios.
 - **CollegeScorecard_result.csv**:Es la base de datos producto con los cambios realizados.
-- **map_states**: Se encuentran archivos tipo shape para la gráficación de estados 
-- **readme.md**: Archivo con información general del proyecto. 	
-- **app.R**: Es la página en la cual se muestran los resultados del análisis.
-- **desarrollo_cluster.ipynb**: En este archivo se definió la creación de los clusters.
-- **funciones.py**: Definición de funciones para la creación de los clusters.
-- **manipulacion_geografica.R**: En este archivo se realizó la depuración de las coordenadas geográficas.
+- **map_states**: Se encuentran archivos tipo shape para la grC!ficaciC3n de estados 
+- **readme.md**: Archivo con informaci??n general del proyecto. 	
+- **app.R**: Es el c??digo de la aplicaci??n web.
+- **desarrollo_cluster.rmd**: En este archivo se tiene el c??digo que genera el informe (se uso lenguaje python).
+- **funciones.py**: DefiniciC3n de funciones para la creaciC3n de los clusters.
+- **manipulacion_geografica.R**: En este archivo se realiza la depuraci??n de las coordenadas geogr??ficas.
 
 ## Metodologia:
 

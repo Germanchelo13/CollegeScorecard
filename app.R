@@ -212,10 +212,14 @@ Antes de realizar la tecnica de clustering, se necesito realizar una preparacion
   una distancia tan lejana de donde residen, el usuario puede dar click en un punto del mapa y 
   obtener la URL de la página principal de dicha universidad.<h5>
 <h2 style='text-align:center'> Video promocional <h2/>
- <iframe width='560' height='315' style='text-align:center' 
- src='https://www.youtube.com/embed/CqstGgo_E4c'
- title='YouTube video player' frameborder='0' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture' allowfullscreen></iframe>
+
+
+<iframe width='560' height='315' src='https://www.youtube.com/embed/hLyG5h6LuCE' 
+title='YouTube video player' frameborder='0' allow='accelerometer; autoplay; 
+clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+allowfullscreen></iframe>
         <br/>   
+        
            <b >Miembros:</b>
    <h5> &#9658 <a href='https://www.linkedin.com/in/germ%C3%A1n-alonso-pati%C3%B1o-hurtado-828783241/' target='_blank'>
   <i class='fab fa-linkedin' role='presentation' aria-label='linkedin icon'></i>
