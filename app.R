@@ -1,11 +1,15 @@
+.libPaths(c(.libPaths(),getwd()))
 library(DT) # print table beutefull
 library(sf) # manupulación geolocalizaciones
-library(tmap)  # graficos interactivos de mapas
+ # graficos interactivos de mapas
+# library(raster,lib.loc = .libPaths()[3])  # graficos interactivos de mapas
 library(dplyr) # manejo de funciones
 library(shiny) # aplicacion
 library(plotly) # graficos 
 library(shinydashboard)
 library(tidyverse)
+library(tmap ,lib.loc = .libPaths()[3]) 
+
 library(shinycssloaders)# to add a loader while graph is populating
 url_github<-"https://github.com/Germanchelo13/CollegeScorecard.git"
 datos<- read.csv('CollegeScorecard_result.csv',sep=",")
@@ -31,7 +35,13 @@ diccionario<-list('TUITFTE'='Costo de matricula promedio.',
                   'DISTANCEONLY'='Si la universidad solo ofrece modalidad virtual.',
                   'HCM2'='Si la universidad tiene riesgo financiero.')
 var_numeric<-c("TUITFTE","INEXPFTE",'NUM_PROGRAM' )
+
+var_numeric_usuario<-c("Matricula promedio","Inversión por estudiante", "Total programas" )
+
+var_cat_usuario<-c("Tipo universidad", "Máximo nivel academico",
+                   "Nivel academico predominante", "Educiacion solo virtual", "Riesgo financiero")
 var_cat<-c("CONTROL","HIGHDEG","PREDDEG","DISTANCEONLY","HCM2")
+
 
 
 datos$CLUSTER<-factor(datos$CLUSTER)
@@ -97,7 +107,7 @@ usuario<- fluidPage(
                                                 fluidPage( 
                                                   fluidRow( br(), 
                                                             selectInput(inputId ="var_numeric" , label = "Select variable"
-                                                                        , choices = var_numeric ),
+                                                                        , choices = var_numeric_usuario ),
                                                             uiOutput('descripcion_numerica'),
                                                             plotlyOutput('boxplot_comp'), br(),br()
                                                             
@@ -109,10 +119,10 @@ usuario<- fluidPage(
                          fluidRow(
                            fluidRow(column(6,
                                            selectInput(inputId ="var_numeric_1" , label = "Select var"
-                                                       , choices = var_numeric )),
+                                                       , choices = var_numeric_usuario )),
                                     column(6,
                                            selectInput(inputId ="var_numeric_2" , label = "Select var"
-                                                       , choices = var_numeric )) ),
+                                                       , choices = var_numeric_usuario )) ),
                            uiOutput('descripcion_numerica_2'),
                            plotlyOutput('scatter_comp')
                          )
@@ -122,7 +132,7 @@ usuario<- fluidPage(
                        fluidPage(
                          fluidRow( selectInput(inputId ="var_cat" , 
                                                label = "Select variable"
-                                               , choices = var_cat ),
+                                               , choices = var_cat_usuario ),
                                    uiOutput('descripcion_cate'),
                                    plotlyOutput('bar_comp')
                          )
@@ -279,15 +289,16 @@ allowfullscreen></iframe>
   })
   #,escape=1)
   output$descripcion_cate<-renderUI({
-    var_temp<-input$var_cat
-    HTML(paste('<b>',var_temp,'</b> :', diccionario[[var_temp]]),sep='' ) 
+    var_temp<-var_cat[which(var_cat_usuario== input$var_cat)]
+      HTML(paste('<b>',input$var_cat,'</b> :', diccionario[[var_temp]]),sep='' ) 
   })
   output$descripcion_numerica<-renderUI({
-    var_temp<-input$var_numeric
+    var_temp<-var_numeric[which(var_numeric_usuario== input$var_numeric)]
     HTML(paste('<b>',var_temp,'</b> :', diccionario[[var_temp]]),sep='' ) })
   output$boxplot_comp<- renderPlotly({
+    var_temp<-var_numeric[which(var_numeric_usuario== input$var_numeric)]
     plot_ly() %>%
-      add_boxplot(x=datos[,'CLUSTER'], y=datos[,input$var_numeric],
+      add_boxplot(x=datos[,'CLUSTER'], y=datos[,var_temp],
                   color=datos[,'CLUSTER']  ) %>%
       layout(xaxis=list(title= 'Cluster' ),
              yaxis=list(title= input$var_numeric ),
@@ -295,18 +306,21 @@ allowfullscreen></iframe>
   })
   
   output$scatter_comp<- renderPlotly({
-    plot_ly(data=datos, x=~get(input$var_numeric_1),
-            y=~get(input$var_numeric_2),type='scatter',
+    var_temp<-var_numeric[which(var_numeric_usuario== input$var_numeric_1)]
+    var_temp1<-var_numeric[which(var_numeric_usuario== input$var_numeric_2)]
+    
+    plot_ly(data=datos, x=~get(var_temp),
+            y=~get(var_temp1),type='scatter',
             mode = 'markers',split =~CLUSTER  ) %>%
-      layout(xaxis=list(title= input$var_numeric_1),
-             yaxis=list(title= input$var_numeric_2),
+      layout(xaxis=list(title= var_temp),
+             yaxis=list(title= var_temp1),
              legend=list(title=list(text='Cluster'))
       )
     
   }) 
   output$bar_comp<-renderPlotly({
     datos_gruop<-datos %>% 
-      group_by(CLUSTER,get(input$var_cat) ) %>%
+      group_by(CLUSTER,get(var_cat[var_cat_usuario== input$var_cat] ) ) %>%
       summarise(freq=n())
     datos_gruop$prop<-0
     for (i in cluster_total$CLUSTER){
@@ -314,10 +328,10 @@ allowfullscreen></iframe>
       total_clusteri<-cluster_total$total[cluster_total$CLUSTER==i]
       datos_gruop[filtro,]$prop<-round(100*datos_gruop[filtro,]$freq/total_clusteri,2)
     }
-    names(datos_gruop)[2]<-input$var_cat
+    names(datos_gruop)[2]<-var_cat[var_cat_usuario== input$var_cat]
     datos_gruop$CLUSTER<-factor(datos_gruop$CLUSTER)
     
-    plot_ly(data=datos_gruop, x=~CLUSTER, y=~prop ,color=~get(input$var_cat),text=~freq,type='bar')%>%
+    plot_ly(data=datos_gruop, x=~CLUSTER, y=~prop ,color=~get(var_cat[var_cat_usuario== input$var_cat]),text=~freq,type='bar')%>%
       layout(yaxis = list(title = 'Percentaje'),legend=list(title='Tipo universidad'))
     
   } )
@@ -328,8 +342,11 @@ allowfullscreen></iframe>
                           yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
   })
   output$descripcion_numerica_2<- renderUI({
-    HTML(paste('<b>',input$var_numeric_1,'</b> :', diccionario[[input$var_numeric_1]],
-               '<br /> ','<b>',input$var_numeric_2,'</b> :', diccionario[[input$var_numeric_2]],sep='' ))
+    x1<-var_numeric[var_numeric_usuario==input$var_numeric_2]
+    x2<-var_numeric[var_numeric_usuario==input$var_numeric_1]
+
+    HTML(paste('<b>',input$var_numeric_1,'</b> :', diccionario[[ x2]],
+               '<br /> ','<b>',input$var_numeric_2,'</b> :', diccionario[[ x1]],sep='' ))
   })
   
   output$datos_<-DT::renderDataTable({
